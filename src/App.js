@@ -1,44 +1,51 @@
-// frontend/src/App.js
+// src/App.js
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
 import TaskListPage from "./pages/TaskListPage";
 import CreateTaskPage from "./pages/CreateTaskPage";
-import LoginPage from "./pages/LoginPage";
-import Navbar from "./components/Navbar";
+import MainLayout from "./layout/MainLayout";
 
-function App() {
+const App = () => {
+  const isAuthenticated = !!localStorage.getItem("token");
+
   return (
     <Router>
-      <AppContent />
-    </Router>
-  );
-}
-
-function AppContent() {
-  const location = useLocation();
-
-  // ✅ Sembunyikan Navbar di halaman login
-  const hideNavbar = location.pathname === "/login";
-
-  return (
-    <>
-      {!hideNavbar && <Navbar />}
-
       <Routes>
-        {/* ✅ Halaman Login */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* ✅ Halaman TaskList (untuk SQI/Admin) */}
-        <Route path="/tasks" element={<TaskListPage />} />
+        {/* Layout utama */}
+        <Route
+          path="/tasks"
+          element={
+            isAuthenticated ? (
+              <MainLayout>
+                <TaskListPage />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
 
-        {/* ✅ Halaman Buat Task (untuk Developer) */}
-        <Route path="/create" element={<CreateTaskPage />} />
+        <Route
+          path="/create"
+          element={
+            isAuthenticated ? (
+              <MainLayout>
+                <CreateTaskPage />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
 
-        {/* ✅ Default route diarahkan ke /tasks */}
-        <Route path="/" element={<TaskListPage />} />
+        {/* Default ke daftar tugas */}
+        <Route path="/" element={<Navigate to="/tasks" />} />
       </Routes>
-    </>
+    </Router>
   );
-}
+};
 
 export default App;

@@ -1,15 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import {
-  Container,
-  TextField,
-  Button,
-  MenuItem,
-  Typography,
-  Box,
-} from "@mui/material";
+import { Box, Typography, TextField, Button, MenuItem, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import MainLayout from "../layout/MainLayout";
 
 const CreateTaskPage = () => {
   const [supportTypes, setSupportTypes] = useState([]);
@@ -46,10 +38,10 @@ const CreateTaskPage = () => {
         setApplications(appRes.data);
         setSqiPics(picRes.data);
       } catch (err) {
-        console.error("Gagal mengambil data dropdown:", err);
-        alert("Gagal memuat data. Pastikan Anda sudah login.");
+        console.error("Gagal memuat data dropdown:", err);
       }
     };
+
     fetchData();
   }, []);
 
@@ -86,118 +78,140 @@ const CreateTaskPage = () => {
   };
 
   return (
-    <MainLayout>
-      <Container maxWidth="sm" sx={{ mt: 5 }}>
-        <Typography variant="h5" gutterBottom>
-          Tambah Task Baru
-        </Typography>
-
-        <Box component="form" onSubmit={handleSubmit}>
-          {/* 1. Judul Task */}
-          <TextField
-            fullWidth
-            label="Judul Task"
-            name="title"
-            value={form.title}
-            onChange={handleChange}
-            margin="normal"
-            required
-          />
-
-          {/* 2. Bentuk Support Type */}
-          <TextField
-            select
-            fullWidth
-            label="Bentuk Support"
-            name="supportType"
-            value={form.supportType}
-            onChange={handleChange}
-            margin="normal"
-            required
+    <Box
+      sx={{
+        display: "flex",
+      }}
+    >
+      {/* Konten utama */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          marginLeft: "220px", // jarak sesuai lebar Drawer
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "flex-start", // Menyesuaikan dengan yang kamu inginkan (tidak center vertikal)
+          minHeight: "100vh",
+          backgroundColor: "transparent", // tetap bening
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            width: 400,
+            borderRadius: 2,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 2,
+              textAlign: "center",
+              color: "#1976d2",
+              fontWeight: "bold",
+            }}
           >
-            {supportTypes.map((type) => (
-              <MenuItem key={type.id} value={type.name}>
-                {type.name}
-              </MenuItem>
-            ))}
-            <MenuItem value="Other">Other</MenuItem>
-          </TextField>
+            Tambah Task Baru
+          </Typography>
 
-          {/* 2b. Custom Support Type */}
-          {form.supportType === "Other" && (
+          <Box component="form" onSubmit={handleSubmit}>
             <TextField
-              fullWidth
-              label="Custom Support Type"
-              name="customSupportType"
-              value={form.customSupportType}
+              label="Judul Task"
+              name="title"
+              value={form.title}
               onChange={handleChange}
-              margin="normal"
+              fullWidth
+              sx={{ mb: 2 }}
               required
             />
-          )}
 
-          {/* 3. Aplikasi */}
-          <TextField
-            select
-            fullWidth
-            label="Aplikasi"
-            name="applicationId"
-            value={form.applicationId}
-            onChange={handleChange}
-            margin="normal"
-            required
-          >
-            {applications.map((app) => (
-              <MenuItem key={app.id} value={app.id}>
-                {app.name}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          {/* 4. Deskripsi */}
-          <TextField
-            fullWidth
-            label="Deskripsi"
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            margin="normal"
-            multiline
-            rows={3}
-            required
-          />
-
-          {/* 5. PIC SQI */}
-          <TextField
-            select
-            fullWidth
-            label="PIC SQI"
-            name="sqiPicId"
-            value={form.sqiPicId}
-            onChange={handleChange}
-            margin="normal"
-            required
-          >
-            {sqiPics.map((pic) => (
-              <MenuItem key={pic.id} value={pic.id}>
-                {pic.name}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <Box sx={{ textAlign: "right" }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              sx={{ mt: 3 }}
+            <TextField
+              select
+              label="Bentuk Support"
+              name="supportType"
+              value={form.supportType}
+              onChange={handleChange}
+              fullWidth
+              sx={{ mb: 2 }}
+              required
             >
+              {supportTypes.map((type) => (
+                <MenuItem key={type.id} value={type.name}>
+                  {type.name}
+                </MenuItem>
+              ))}
+              <MenuItem value="Other">Other</MenuItem>
+            </TextField>
+
+            {/* Custom Support Type hanya muncul jika "Other" dipilih */}
+            {form.supportType === "Other" && (
+              <TextField
+                label="Custom Support Type"
+                name="customSupportType"
+                value={form.customSupportType}
+                onChange={handleChange}
+                fullWidth
+                sx={{ mb: 2 }}
+                required
+              />
+            )}
+
+            <TextField
+              select
+              label="Aplikasi"
+              name="applicationId"
+              value={form.applicationId}
+              onChange={handleChange}
+              fullWidth
+              sx={{ mb: 2 }}
+              required
+            >
+              {applications.map((app) => (
+                <MenuItem key={app.id} value={app.id}>
+                  {app.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              label="Deskripsi"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              multiline
+              rows={3}
+              fullWidth
+              sx={{ mb: 2 }}
+              required
+            />
+
+            <TextField
+              select
+              label="PIC SQI"
+              name="sqiPicId"
+              value={form.sqiPicId}
+              onChange={handleChange}
+              fullWidth
+              sx={{ mb: 2 }}
+              required
+            >
+              {sqiPics.map((pic) => (
+                <MenuItem key={pic.id} value={pic.id}>
+                  {pic.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <Button variant="contained" fullWidth type="submit">
               Simpan Task
             </Button>
           </Box>
-        </Box>
-      </Container>
-    </MainLayout>
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 
