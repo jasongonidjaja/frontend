@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { Container, TextField, Button, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -7,6 +8,7 @@ import { setAuthData } from "../middleware/auth";
 const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,13 +23,11 @@ const LoginPage = () => {
       const response = await api.post("/auth/login", form);
       const { token, role, username } = response.data;
 
-    setAuthData(token, role);
-    localStorage.setItem("username", username);
-    localStorage.setItem("user", JSON.stringify({ token, role, username }));
+      localStorage.setItem("username", username);
+      localStorage.setItem("user", JSON.stringify({ token, role, username }));
 
-      if (role === "sqi") navigate("/tasks");
-      else if (role === "developer") navigate("/create");
-      else setError("Role tidak dikenali.");
+      login(token, role, username);
+      navigate("/tasks");
     } catch (err) {
       console.error("Login error:", err);
       if (err.response?.status === 401) setError("Username atau password salah.");

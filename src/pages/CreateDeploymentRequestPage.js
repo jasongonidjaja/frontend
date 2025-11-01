@@ -1,53 +1,41 @@
+// src/pages/CreateDeploymentRequestPage.js
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Box, Typography, TextField, Button, MenuItem, Paper } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import UploadFileIcon from "@mui/icons-material/UploadFile"; // 🔹 Ikon upload
+import api from "../services/api";
+import UploadFileIcon from "@mui/icons-material/UploadFile"; // Ikon upload
 
-const CreateTaskPage = () => {
-  const [supportTypes, setSupportTypes] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [sqiPics, setSqiPics] = useState([]);
+const CreateDeploymentRequestPage = () => {
   const [form, setForm] = useState({
+    releaseId: "",
     title: "",
-    supportType: "",
-    customSupportType: "",
-    description: "",
+    implementDate: "",
     applicationId: "",
-    sqiPicId: "",
+    riskImpact: "Low",
     attachment: null,
   });
 
+  const [applications, setApplications] = useState([]);
   const navigate = useNavigate();
 
-  // 🔹 Ambil data dari API (SupportType, Application, SQI)
+  // Ambil data aplikasi dari API
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchApplications = async () => {
       try {
-        const [supportRes, appRes, picRes] = await Promise.all([
-          axios.get("http://localhost:4000/api/support-types", {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          }),
-          axios.get("http://localhost:4000/api/applications", {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          }),
-          axios.get("http://localhost:4000/api/sqi-pics", {
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          }),
-        ]);
-
-        setSupportTypes(supportRes.data);
-        setApplications(appRes.data);
-        setSqiPics(picRes.data);
+        const res = await api.get("/applications", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setApplications(res.data);
       } catch (err) {
-        console.error("Gagal memuat data dropdown:", err);
+        console.error("❌ Gagal mengambil data aplikasi:", err);
       }
     };
 
-    fetchData();
+    fetchApplications();
   }, []);
 
-  // 🔹 Handle perubahan input
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -56,41 +44,35 @@ const CreateTaskPage = () => {
     setForm({ ...form, attachment: e.target.files[0] });
   };
 
-  // 🔹 Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Membuat objek FormData untuk menangani file upload
     const formData = new FormData();
+    formData.append("releaseId", form.releaseId);
     formData.append("title", form.title);
-    formData.append("description", form.description);
-    formData.append("supportType", form.supportType);
-    formData.append("customSupportType", form.supportType === "Other" ? form.customSupportType : null);
+    formData.append("implementDate", form.implementDate);
     formData.append("applicationId", form.applicationId);
-    formData.append("sqiPicId", form.sqiPicId);
+    formData.append("riskImpact", form.riskImpact);
 
-    // Jika ada file attachment, tambahkan ke FormData
     if (form.attachment) {
       formData.append("attachment", form.attachment);
     }
 
     try {
-      // Mengirim request ke backend dengan FormData dan header untuk file upload
-      await axios.post("http://localhost:4000/api/tasks", formData, {
+      // Mengirim request ke backend untuk menyimpan deployment request
+      await api.post("/deployment-requests", formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data", // Pastikan header ini ada untuk upload file
+          "Content-Type": "multipart/form-data",
         },
       });
 
-      alert("Task berhasil dibuat!");
-      navigate("/tasks"); // Redirect ke daftar task setelah berhasil
+      alert("Request deployment berhasil dibuat!");
+      navigate("/deployment-calendar"); // Redirect ke kalender deployment setelah berhasil
     } catch (err) {
-      console.error("Error creating task:", err);
-      alert("Gagal menyimpan task. Lihat console untuk detail error.");
+      console.error("❌ Gagal membuat request deployment:", err);
+      alert("Gagal menyimpan request deployment.");
     }
   };
-
 
   return (
     <Box
@@ -129,12 +111,22 @@ const CreateTaskPage = () => {
               fontWeight: "bold",
             }}
           >
-            Tambah Task Baru
+            Request Deployment Baru
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
-              label="Judul Task"
+              label="Release ID"
+              name="releaseId"
+              value={form.releaseId}
+              onChange={handleChange}
+              fullWidth
+              sx={{ mb: 2 }}
+              required
+            />
+
+            <TextField
+              label="Judul Implementasi"
               name="title"
               value={form.title}
               onChange={handleChange}
@@ -144,35 +136,18 @@ const CreateTaskPage = () => {
             />
 
             <TextField
-              select
-              label="Bentuk Support"
-              name="supportType"
-              value={form.supportType}
+              label="Tanggal Implementasi"
+              name="implementDate"
+              type="date"
+              value={form.implementDate}
               onChange={handleChange}
               fullWidth
               sx={{ mb: 2 }}
               required
-            >
-              {supportTypes.map((type) => (
-                <MenuItem key={type.id} value={type.name}>
-                  {type.name}
-                </MenuItem>
-              ))}
-              <MenuItem value="Other">Other</MenuItem>
-            </TextField>
-
-            {/* Custom Support Type hanya muncul jika "Other" dipilih */}
-            {form.supportType === "Other" && (
-              <TextField
-                label="Custom Support Type"
-                name="customSupportType"
-                value={form.customSupportType}
-                onChange={handleChange}
-                fullWidth
-                sx={{ mb: 2 }}
-                required
-              />
-            )}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
 
             <TextField
               select
@@ -192,18 +167,20 @@ const CreateTaskPage = () => {
             </TextField>
 
             <TextField
-              label="Deskripsi"
-              name="description"
-              value={form.description}
+              select
+              label="Risk Impact"
+              name="riskImpact"
+              value={form.riskImpact}
               onChange={handleChange}
-              multiline
-              rows={3}
               fullWidth
               sx={{ mb: 2 }}
-              required
-            />
+            >
+              <MenuItem value="Low">Low</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="High">High</MenuItem>
+            </TextField>
 
-            {/* 🔹 Upload File Modern */}
+            {/* Upload File */}
             <Button
               variant="outlined"
               component="label"
@@ -234,7 +211,7 @@ const CreateTaskPage = () => {
             )}
 
             <Button variant="contained" fullWidth type="submit">
-              Simpan Task
+              Simpan Request Deployment
             </Button>
           </Box>
         </Paper>
@@ -243,4 +220,4 @@ const CreateTaskPage = () => {
   );
 };
 
-export default CreateTaskPage;
+export default CreateDeploymentRequestPage;

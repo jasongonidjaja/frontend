@@ -10,7 +10,13 @@ import {
   Box,
   Typography,
 } from "@mui/material";
-import { AddCircleOutline, ListAlt, Logout } from "@mui/icons-material";
+import {
+  AddCircleOutline,
+  ListAlt,
+  Logout,
+  CalendarMonth,
+  RocketLaunch,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
@@ -24,9 +30,28 @@ const Navbar = () => {
   const menuItems = [
     // Hanya tampil kalau bukan SQI
     ...(role !== "sqi"
-      ? [{ text: "Buat Tugas", icon: <AddCircleOutline />, path: "/create" }]
+      ? [{ text: "Create Support Task", icon: <AddCircleOutline />, path: "/create" }]
       : []),
-    { text: "Lihat Tugas", icon: <ListAlt />, path: "/tasks" },
+
+    { text: "Support Task List", icon: <ListAlt />, path: "/tasks" },
+
+    // 🔹 Hanya untuk developer
+    ...(role === "developer"
+      ? [
+          {
+            text: "Request Deployment",
+            icon: <RocketLaunch />,
+            path: "/request-deployment",
+          },
+        ]
+      : []),
+
+    // 🔹 Semua role bisa melihat kalender deployment
+    {
+      text: "Deployment Calendar",
+      icon: <CalendarMonth />,
+      path: "/deployment-calendar",
+    },
   ];
 
   // 🔹 Logout handler
@@ -37,7 +62,6 @@ const Navbar = () => {
     localStorage.removeItem("user");
     navigate("/login");
   };
-
 
   return (
     <Drawer
